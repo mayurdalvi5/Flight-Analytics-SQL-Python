@@ -1,7 +1,34 @@
 import streamlit as st
+import base64
 from dbhelper import DB
 import plotly.graph_objects as go
 import plotly.express as px
+
+
+# Function to load and encode the image
+def get_base64_image(image_file):
+    with open(image_file, "rb") as image:
+        return base64.b64encode(image.read()).decode()
+
+
+# Load the image and encode it in Base64
+image_file = "flight-statistics-scaled.jpg"
+base64_image = get_base64_image(image_file)
+
+# Inject CSS to set the background image
+page_bg_img = f'''
+<style>
+.stApp {{
+    background-image: url("data:image/jpeg;base64,{base64_image}");
+    background-size: cover;
+}}
+</style>
+'''
+
+st.markdown(page_bg_img, unsafe_allow_html=True)
+
+################
+
 
 db = DB()
 
@@ -19,7 +46,7 @@ if user_option == "Check Flights":
         source = st.selectbox("Source", sorted(city))
 
     with col2:
-        destination = st.selectbox("Destination", sorted(city, reverse= True))
+        destination = st.selectbox("Destination", sorted(city, reverse=True))
 
     if st.button("Search"):
         results = db.fetch_all_flights(source, destination)
@@ -41,19 +68,6 @@ elif user_option == "Analytics":
     )
     st.header("Pie Chart")
     st.plotly_chart(fig)
-
-    # city, frequency = db.busy_airport()
-    #
-    # fig1 = go.Figure(
-    #     go.Pie(
-    #         labels=city,
-    #         values=frequency,
-    #         hoverinfo="label+percent",
-    #         textinfo="value"
-    #     )
-    # )
-    # st.header("Pie Chart")
-    # st.plotly_chart(fig1)
 
     city, frequency = db.busy_airport()
     fig = px.bar(x=city, y=frequency)
